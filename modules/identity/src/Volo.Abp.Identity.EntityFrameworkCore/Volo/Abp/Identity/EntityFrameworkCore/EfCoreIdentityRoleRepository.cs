@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.Guids;
 
 namespace Volo.Abp.Identity.EntityFrameworkCore
 {
@@ -15,7 +16,6 @@ namespace Volo.Abp.Identity.EntityFrameworkCore
         public EfCoreIdentityRoleRepository(IDbContextProvider<IIdentityDbContext> dbContextProvider)
             : base(dbContextProvider)
         {
-
         }
 
         public virtual async Task<IdentityRole> FindByNormalizedNameAsync(
@@ -40,11 +40,6 @@ namespace Volo.Abp.Identity.EntityFrameworkCore
                 .OrderBy(sorting ?? nameof(IdentityRole.Name))
                 .PageBy(skipCount, maxResultCount)
                 .ToListAsync(GetCancellationToken(cancellationToken));
-        }
-
-        public virtual async Task<long> GetCountAsync(CancellationToken cancellationToken = default)
-        {
-            return await this.LongCountAsync(GetCancellationToken(cancellationToken));
         }
 
         public override IQueryable<IdentityRole> WithDetails()

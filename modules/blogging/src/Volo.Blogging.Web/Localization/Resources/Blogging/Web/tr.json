@@ -1,11 +1,12 @@
 ﻿{
   "culture": "tr",
   "texts": {
-    "Menu:Blogs": "Blog",
+    "Menu:Blogs": "Bloglar",
+    "Menu:BlogManagement": "Blog Yönetimi",
     "Title": "Başlık",
     "Delete": "Sil",
     "Reply": "Yanıtla",
-    "Menu:BlogManagement": "Blog Yönetimi",
+    "ReplyTo": "{0}'a cevap ver",
     "ContinueReading": "Devamı...",
     "DaysAgo": "{0} Gün Önce",
     "YearsAgo": "{0} yıl önce",
@@ -31,6 +32,7 @@
     "BlogDeletionWarningMessage": "Blog silinecek.",
     "AreYouSure": "Emin misiniz?",
     "CommentWithCount": "{0} yorum",
+    "Comment": "Yorum",
     "CoverImage": "Kapak resmi",
     "CreateANewPost": "Yeni Yazı oluştur",
     "CreateANewBlog": "Yeni Blog Ekle",

@@ -2,6 +2,8 @@ using System;
 using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
+using Volo.Abp.BackgroundJobs;
+using Volo.Abp.Threading;
 
 namespace Volo.Abp.Emailing
 {
@@ -10,15 +12,17 @@ namespace Volo.Abp.Emailing
     /// </summary>
     public abstract class EmailSenderBase : IEmailSender
     {
-        public IEmailSenderConfiguration Configuration { get; }
+        protected IEmailSenderConfiguration Configuration { get; }
+
+        protected IBackgroundJobManager BackgroundJobManager { get; }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        protected EmailSenderBase(IEmailSenderConfiguration configuration)
+        protected EmailSenderBase(IEmailSenderConfiguration configuration, IBackgroundJobManager backgroundJobManager)
         {
             Configuration = configuration;
+            BackgroundJobManager = backgroundJobManager;
         }
 
         public virtual async Task SendAsync(string to, string subject, string body, bool isBodyHtml = true)
@@ -57,17 +61,36 @@ namespace Volo.Abp.Emailing
         {
             if (normalize)
             {
-                NormalizeMail(mail);
+                await NormalizeMailAsync(mail);
             }
 
             await SendEmailAsync(mail);
+        }
+
+        public virtual async Task QueueAsync(string to, string subject, string body, bool isBodyHtml = true)
+        {
+            if (!BackgroundJobManager.IsAvailable())
+            {
+                await SendAsync(to, subject, body, isBodyHtml);
+                return;
+            }
+
+            await BackgroundJobManager.EnqueueAsync(
+                new BackgroundEmailSendingJobArgs
+                {
+                    To = to,
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = isBodyHtml
+                }
+            );
         }
 
         public virtual void Send(MailMessage mail, bool normalize = true)
         {
             if (normalize)
             {
-                NormalizeMail(mail);
+                AsyncHelper.RunSync(() => NormalizeMailAsync(mail));
             }
 
             SendEmail(mail);
@@ -91,13 +114,13 @@ namespace Volo.Abp.Emailing
         /// Sets encodings to UTF8 if they are not set before.
         /// </summary>
         /// <param name="mail">Mail to be normalized</param>
-        protected virtual void NormalizeMail(MailMessage mail)
+        protected virtual async Task NormalizeMailAsync(MailMessage mail)
         {
             if (mail.From == null || mail.From.Address.IsNullOrEmpty())
             {
                 mail.From = new MailAddress(
-                    Configuration.DefaultFromAddress,
-                    Configuration.DefaultFromDisplayName,
+                    await Configuration.GetDefaultFromAddressAsync(),
+                    await Configuration.GetDefaultFromDisplayNameAsync(),
                     Encoding.UTF8
                     );
             }

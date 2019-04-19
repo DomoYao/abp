@@ -1,11 +1,12 @@
 {
   "culture": "en",
   "texts": {
-    "Menu:Blogs": "Blog",
+    "Menu:Blogs": "Blogs",
     "Menu:BlogManagement": "Blog Management",
     "Title": "Title",
     "Delete": "Delete",
     "Reply": "Reply",
+    "ReplyTo": "Reply To {0}",
     "ContinueReading": "Continue Reading",
     "DaysAgo": "{0} days ago",
     "YearsAgo": "{0} years ago",

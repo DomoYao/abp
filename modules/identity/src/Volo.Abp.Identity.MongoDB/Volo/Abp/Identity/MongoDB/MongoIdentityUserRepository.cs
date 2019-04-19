@@ -8,16 +8,19 @@ using System.Threading.Tasks;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Volo.Abp.Domain.Repositories.MongoDB;
+using Volo.Abp.Guids;
 using Volo.Abp.MongoDB;
 
 namespace Volo.Abp.Identity.MongoDB
 {
     public class MongoIdentityUserRepository : MongoDbRepository<IAbpIdentityMongoDbContext, IdentityUser, Guid>, IIdentityUserRepository
     {
-        public MongoIdentityUserRepository(IMongoDbContextProvider<IAbpIdentityMongoDbContext> dbContextProvider) 
+        private readonly IGuidGenerator _guidGenerator;
+
+        public MongoIdentityUserRepository(IMongoDbContextProvider<IAbpIdentityMongoDbContext> dbContextProvider, IGuidGenerator guidGenerator) 
             : base(dbContextProvider)
         {
-
+            _guidGenerator = guidGenerator;
         }
 
         public async Task<IdentityUser> FindByNormalizedUserNameAsync(

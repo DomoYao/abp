@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using Volo.Abp.Domain.Entities;
 
@@ -26,7 +27,12 @@ namespace Volo.Abp.IdentityServer.ApiResources
 
         protected ApiScope()
         {
-            
+
+        }
+
+        public virtual bool Equals(Guid apiResourceId, [NotNull] string name)
+        {
+            return ApiResourceId == apiResourceId && Name == name;
         }
 
         protected internal ApiScope(
@@ -54,6 +60,21 @@ namespace Volo.Abp.IdentityServer.ApiResources
         public virtual void AddUserClaim([NotNull] string type)
         {
             UserClaims.Add(new ApiScopeClaim(ApiResourceId, Name, type));
+        }
+
+        public virtual void RemoveAllUserClaims()
+        {
+            UserClaims.Clear();
+        }
+
+        public virtual void RemoveClaim(string type)
+        {
+            UserClaims.RemoveAll(r => r.Type == type);
+        }
+
+        public virtual ApiScopeClaim FindClaim(string type)
+        {
+            return UserClaims.FirstOrDefault(r => r.Name == Name && r.Type == type);
         }
 
         public override object[] GetKeys()
