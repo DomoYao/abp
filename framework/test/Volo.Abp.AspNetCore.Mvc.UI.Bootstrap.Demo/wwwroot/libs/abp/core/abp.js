@@ -76,10 +76,17 @@ var abp = abp || {};
     abp.localization.values = {};
 
     abp.localization.localize = function (key, sourceName) {
+        if (sourceName === '_') { //A convention to suppress the localization
+            return key;
+        }
+
         sourceName = sourceName || abp.localization.defaultResourceName;
+        if (!sourceName) {
+            abp.log.warn('Localization source name is not specified and the defaultResourceName was not defined!');
+            return key;
+        }
 
         var source = abp.localization.values[sourceName];
-
         if (!source) {
             abp.log.warn('Could not find localization source: ' + sourceName);
             return key;
@@ -97,6 +104,29 @@ var abp = abp || {};
         return abp.utils.formatString.apply(this, copiedArguments);
     };
 
+    abp.localization.isLocalized = function (key, sourceName) {
+        if (sourceName === '_') { //A convention to suppress the localization
+            return true;
+        }
+
+        sourceName = sourceName || abp.localization.defaultResourceName;
+        if (!sourceName) {
+            return false;
+        }
+
+        var source = abp.localization.values[sourceName];
+        if (!source) {
+            return false;
+        }
+
+        var value = source[key];
+        if (value === undefined) {
+            return false;
+        }
+
+        return true;
+    };
+
     abp.localization.getResource = function (name) {
         return function () {
             var copiedArguments = Array.prototype.slice.call(arguments, 0);
@@ -106,6 +136,38 @@ var abp = abp || {};
     };
 
     abp.localization.defaultResourceName = undefined;
+    abp.localization.currentCulture = {
+        cultureName: undefined
+    };
+
+    var getMapValue = function (packageMaps, packageName, language) {
+        language = language || abp.localization.currentCulture.name;
+        if (!packageMaps || !packageName || !language) {
+            return language;
+        }
+
+        var packageMap = packageMaps[packageName];
+        if (!packageMap) {
+            return language;
+        }
+
+        for (var i = 0; i < packageMap.length; i++) {
+            var map = packageMap[i];
+            if (map.name === language){
+                return map.value;
+            }
+        }
+
+        return language;
+    };
+
+    abp.localization.getLanguagesMap = function (packageName, language) {
+        return getMapValue(abp.localization.languagesMap, packageName, language);
+    };
+
+    abp.localization.getLanguageFilesMap = function (packageName, language) {
+        return getMapValue(abp.localization.languageFilesMap, packageName, language);
+    };
 
     /* AUTHORIZATION **********************************************/
 
@@ -160,6 +222,25 @@ var abp = abp || {};
     abp.auth.clearToken = function () {
         abp.auth.setToken();
     }
+
+    /* SETTINGS *************************************************/
+
+    abp.setting = abp.setting || {};
+
+    abp.setting.values = abp.setting.values || {};
+
+    abp.setting.get = function (name) {
+        return abp.setting.values[name];
+    };
+
+    abp.setting.getBoolean = function (name) {
+        var value = abp.setting.get(name);
+        return value == 'true' || value == 'True';
+    };
+
+    abp.setting.getInt = function (name) {
+        return parseInt(abp.setting.values[name]);
+    };
 
     /* NOTIFICATION *********************************************/
     //Defines Notification API, not implements it
@@ -227,25 +308,96 @@ var abp = abp || {};
     abp.ui = abp.ui || {};
 
     /* UI BLOCK */
-    //Defines UI Block API, not implements it
+    //Defines UI Block API and implements basically
 
-    abp.ui.block = function (elm) {
-        abp.log.warn('abp.ui.block is not implemented!');
+    var $abpBlockArea = document.createElement('div');
+    $abpBlockArea.classList.add('abp-block-area');
+
+    /* opts: { //Can be an object with options or a string for query a selector
+     *  elm: a query selector (optional - default: document.body)
+     *  busy: boolean (optional - default: false)
+     *  promise: A promise with always or finally handler (optional - auto unblocks the ui if provided)
+     * }
+     */
+    abp.ui.block = function (opts) {
+        if (!opts) {
+            opts = {};
+        } else if (typeof opts == 'string') {
+            opts = {
+                elm: opts
+            };
+        }
+
+        var $elm = document.querySelector(opts.elm) || document.body;
+
+        if (opts.busy) {
+            $abpBlockArea.classList.add('abp-block-area-busy');
+        } else {
+            $abpBlockArea.classList.remove('abp-block-area-busy');
+        }
+
+        if (document.querySelector(opts.elm)) {
+            $abpBlockArea.style.position = 'absolute';
+        } else {
+            $abpBlockArea.style.position = 'fixed';
+        }
+
+        $elm.appendChild($abpBlockArea);
+
+        if (opts.promise) {
+            if (opts.promise.always) { //jQuery.Deferred style
+                opts.promise.always(function () {
+                    abp.ui.unblock({
+                        $elm: opts.elm
+                    });
+                });
+            } else if (opts.promise['finally']) { //Q style
+                opts.promise['finally'](function () {
+                    abp.ui.unblock({
+                        $elm: opts.elm
+                    });
+                });
+            }
+        }
     };
 
-    abp.ui.unblock = function (elm) {
-        abp.log.warn('abp.ui.unblock is not implemented!');
+    /* opts: {
+     *
+     * }
+     */
+    abp.ui.unblock = function (opts) {
+        var element = document.querySelector('.abp-block-area');
+        if (element) {
+            element.classList.add('abp-block-area-disappearing');
+            setTimeout(function () {
+                if (element) {
+                    element.classList.remove('abp-block-area-disappearing');
+                    element.parentElement.removeChild(element);
+                }
+            }, 250);
+        }
     };
 
     /* UI BUSY */
     //Defines UI Busy API, not implements it
 
-    abp.ui.setBusy = function (elm, optionsOrPromise) {
-        abp.log.warn('abp.ui.setBusy is not implemented!');
+    abp.ui.setBusy = function (opts) {
+        if (!opts) {
+            opts = {
+                busy: true
+            };
+        } else if (typeof opts == 'string') {
+            opts = {
+                elm: opts,
+                busy: true
+            };
+        }
+
+        abp.ui.block(opts);
     };
 
-    abp.ui.clearBusy = function (elm) {
-        abp.log.warn('abp.ui.clearBusy is not implemented!');
+    abp.ui.clearBusy = function (opts) {
+        abp.ui.unblock(opts);
     };
 
     /* SIMPLE EVENT BUS *****************************************/
@@ -464,7 +616,7 @@ var abp = abp || {};
      * This is a simple implementation created to be used by ABP.
      * Please use a complete cookie library if you need.
      * @param {string} key
-     * @param {string} value 
+     * @param {string} value
      * @param {Date} expireDate (optional). If not specified the cookie will expire at the end of session.
      * @param {string} path (optional)
      */
@@ -537,10 +689,66 @@ var abp = abp || {};
     abp.security.antiForgery = abp.security.antiForgery || {};
 
     abp.security.antiForgery.tokenCookieName = 'XSRF-TOKEN';
-    abp.security.antiForgery.tokenHeaderName = 'X-XSRF-TOKEN';
+    abp.security.antiForgery.tokenHeaderName = 'RequestVerificationToken';
 
     abp.security.antiForgery.getToken = function () {
         return abp.utils.getCookieValue(abp.security.antiForgery.tokenCookieName);
+    };
+
+    /* CLOCK *****************************************/
+    abp.clock = abp.clock || {};
+
+    abp.clock.kind = 'Unspecified';
+
+    abp.clock.supportsMultipleTimezone = function () {
+        return abp.clock.kind === 'Utc';
+    };
+
+    var toLocal = function (date) {
+        return new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate(),
+            date.getHours(),
+            date.getMinutes(),
+            date.getSeconds(),
+            date.getMilliseconds()
+        );
+    };
+
+    var toUtc = function (date) {
+        return Date.UTC(
+            date.getUTCFullYear(),
+            date.getUTCMonth(),
+            date.getUTCDate(),
+            date.getUTCHours(),
+            date.getUTCMinutes(),
+            date.getUTCSeconds(),
+            date.getUTCMilliseconds()
+        );
+    };
+
+    abp.clock.now = function () {
+        if (abp.clock.kind === 'Utc') {
+            return toUtc(new Date());
+        }
+        return new Date();
+    };
+
+    abp.clock.normalize = function (date) {
+        var kind = abp.clock.kind;
+
+        if (kind === 'Unspecified') {
+            return date;
+        }
+
+        if (kind === 'Local') {
+            return toLocal(date);
+        }
+
+        if (kind === 'Utc') {
+            return toUtc(date);
+        }
     };
 
 })();

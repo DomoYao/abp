@@ -1,7 +1,7 @@
 /*!
  * tui-editor
- * @version 1.2.6
- * @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com> (https://nhnent.github.io/tui.editor/)
+ * @version 1.4.10
+ * @author NHN FE Development Lab <dl_javascript@nhn.com> (https://nhn.github.io/tui.editor/)
  * @license MIT
  */
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -10,10 +10,10 @@
 	else if(typeof define === 'function' && define.amd)
 		define(["jquery", "tui-code-snippet", "tui-editor", "tui-editor/dist/tui-editor-Viewer", "to-mark"], factory);
 	else {
-		var a = typeof exports === 'object' ? factory(require("jquery"), require("tui-code-snippet"), (function webpackLoadOptionalExternalModule() { try { return require("tui-editor"); } catch(e) {} }()), (function webpackLoadOptionalExternalModule() { try { return require("tui-editor/dist/tui-editor-Viewer"); } catch(e) {} }()), require("to-mark")) : factory(root["$"], (root["tui"] && root["tui"]["util"]), (root["tui"] && root["tui"]["Editor"]), (root["tui"] && root["tui"]["Editor"]), root["toMark"]);
+		var a = typeof exports === 'object' ? factory(require("jquery"), require("tui-code-snippet"), (function webpackLoadOptionalExternalModule() { try { return require("tui-editor"); } catch(e) {} }()), (function webpackLoadOptionalExternalModule() { try { return require("tui-editor/dist/tui-editor-Viewer"); } catch(e) {} }()), require("to-mark")) : factory(root["$"], root["tui"]["util"], root["tui"]["Editor"], root["tui"]["Editor"], root["toMark"]);
 		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
 	}
-})(typeof self !== 'undefined' ? self : this, function(__WEBPACK_EXTERNAL_MODULE_0__, __WEBPACK_EXTERNAL_MODULE_2__, __WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_EXTERNAL_MODULE_5__, __WEBPACK_EXTERNAL_MODULE_54__) {
+})(window, function(__WEBPACK_EXTERNAL_MODULE__0__, __WEBPACK_EXTERNAL_MODULE__2__, __WEBPACK_EXTERNAL_MODULE__4__, __WEBPACK_EXTERNAL_MODULE__5__, __WEBPACK_EXTERNAL_MODULE__55__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -52,12 +52,32 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
 /******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
 /******/ 	};
 /******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
@@ -73,17 +93,18 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
 /******/
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "dist/";
+/******/ 	__webpack_require__.p = "/dist";
+/******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 49);
+/******/ 	return __webpack_require__(__webpack_require__.s = 50);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
+module.exports = __WEBPACK_EXTERNAL_MODULE__0__;
 
 /***/ }),
 /* 1 */
@@ -97,7 +118,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 /**
 * @fileoverview Editor/Viewer proxy for extensions
-* @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+* @author NHN FE Development Lab <dl_javascript@nhn.com>
 */
 /* eslint global-require: 0 no-empty: 0 */
 
@@ -117,7 +138,7 @@ exports.default = Editor;
 /* 2 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_2__;
+module.exports = __WEBPACK_EXTERNAL_MODULE__2__;
 
 /***/ }),
 /* 3 */
@@ -158,7 +179,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  */
 /**
 * @fileoverview Implements tableDataHandler
-* @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+* @author NHN FE Development Lab <dl_javascript@nhn.com>
 */
 function _parseCell(cell, rowIndex, colIndex) {
   var $cell = (0, _jquery2.default)(cell);
@@ -484,12 +505,14 @@ function findElementIndex(tableData, rowIndex, colIndex) {
 function stuffCellsIntoIncompleteRow(tableData, limitIndex) {
   tableData.forEach(function (rowData, rowIndex) {
     var startIndex = rowData.length;
-    var nodeName = rowData[0].nodeName;
+    if (startIndex) {
+      var nodeName = rowData[0].nodeName;
 
 
-    _tuiCodeSnippet2.default.range(startIndex, limitIndex).forEach(function (colIndex) {
-      rowData.push(createBasicCell(rowIndex, colIndex, nodeName));
-    });
+      _tuiCodeSnippet2.default.range(startIndex, limitIndex).forEach(function (colIndex) {
+        rowData.push(createBasicCell(rowIndex, colIndex, nodeName));
+      });
+    }
   });
 }
 
@@ -555,15 +578,15 @@ exports.default = {
 /* 4 */
 /***/ (function(module, exports) {
 
-if(typeof __WEBPACK_EXTERNAL_MODULE_4__ === 'undefined') {var e = new Error("Cannot find module \"undefined\""); e.code = 'MODULE_NOT_FOUND'; throw e;}
-module.exports = __WEBPACK_EXTERNAL_MODULE_4__;
+if(typeof __WEBPACK_EXTERNAL_MODULE__4__ === 'undefined') {var e = new Error("Cannot find module 'undefined'"); e.code = 'MODULE_NOT_FOUND'; throw e;}
+module.exports = __WEBPACK_EXTERNAL_MODULE__4__;
 
 /***/ }),
 /* 5 */
 /***/ (function(module, exports) {
 
-if(typeof __WEBPACK_EXTERNAL_MODULE_5__ === 'undefined') {var e = new Error("Cannot find module \"undefined\""); e.code = 'MODULE_NOT_FOUND'; throw e;}
-module.exports = __WEBPACK_EXTERNAL_MODULE_5__;
+if(typeof __WEBPACK_EXTERNAL_MODULE__5__ === 'undefined') {var e = new Error("Cannot find module 'undefined'"); e.code = 'MODULE_NOT_FOUND'; throw e;}
+module.exports = __WEBPACK_EXTERNAL_MODULE__5__;
 
 /***/ }),
 /* 6 */
@@ -594,7 +617,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  */
 /**
 * @fileoverview Implements tableRenderer
-* @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+* @author NHN FE Development Lab <dl_javascript@nhn.com>
 */
 function _createCellHtml(cell) {
   var attrs = cell.colspan > 1 ? ' colspan="' + cell.colspan + '"' : '';
@@ -633,13 +656,13 @@ function _createTheadOrTbodyHtml(trs, wrapperNodeName) {
  * @private
  */
 function createTableHtml(renderData) {
-  var thead = [renderData[0]];
+  var thead = renderData[0] ? [renderData[0]] : [];
   var tbody = renderData.slice(1);
   var theadHtml = _createTheadOrTbodyHtml(thead, 'THEAD');
   var tbodyHtml = _createTheadOrTbodyHtml(tbody, 'TBODY');
   var className = renderData.className ? ' class="' + renderData.className + '"' : '';
 
-  return '<table' + className + '>' + (theadHtml + tbodyHtml) + '</renderData>';
+  return '<table' + className + '>' + (theadHtml + tbodyHtml) + '</table>';
 }
 
 /**
@@ -763,7 +786,7 @@ function _findUnmergedRange(tableData, $start, $end) {
  */
 /**
 * @fileoverview Implements tableRangeHandler
-* @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+* @author NHN FE Development Lab <dl_javascript@nhn.com>
 */
 function _expandRowMergedRange(tableData, tableRange, rangeType) {
   var rowIndex = tableRange[rangeType].rowIndex;
@@ -961,7 +984,8 @@ exports.default = {
 /* 46 */,
 /* 47 */,
 /* 48 */,
-/* 49 */
+/* 49 */,
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -975,57 +999,55 @@ var _editorProxy = __webpack_require__(1);
 
 var _editorProxy2 = _interopRequireDefault(_editorProxy);
 
-__webpack_require__(50);
+__webpack_require__(51);
 
-var _mergedTableCreator = __webpack_require__(51);
+var _mergedTableCreator = __webpack_require__(52);
 
 var _mergedTableCreator2 = _interopRequireDefault(_mergedTableCreator);
 
-var _tableUnmergePreparer = __webpack_require__(52);
+var _tableUnmergePreparer = __webpack_require__(53);
 
 var _tableUnmergePreparer2 = _interopRequireDefault(_tableUnmergePreparer);
 
-var _toMarkRenderer = __webpack_require__(53);
+var _toMarkRenderer = __webpack_require__(54);
 
-var _toMarkRenderer2 = _interopRequireDefault(_toMarkRenderer);
-
-var _wwMergedTableManager = __webpack_require__(55);
+var _wwMergedTableManager = __webpack_require__(56);
 
 var _wwMergedTableManager2 = _interopRequireDefault(_wwMergedTableManager);
 
-var _wwMergedTableSelectionManager = __webpack_require__(56);
+var _wwMergedTableSelectionManager = __webpack_require__(57);
 
 var _wwMergedTableSelectionManager2 = _interopRequireDefault(_wwMergedTableSelectionManager);
 
-var _mergedTableAddRow = __webpack_require__(57);
+var _mergedTableAddRow = __webpack_require__(58);
 
 var _mergedTableAddRow2 = _interopRequireDefault(_mergedTableAddRow);
 
-var _mergedTableAddCol = __webpack_require__(58);
+var _mergedTableAddCol = __webpack_require__(59);
 
 var _mergedTableAddCol2 = _interopRequireDefault(_mergedTableAddCol);
 
-var _mergedTableRemoveRow = __webpack_require__(59);
+var _mergedTableRemoveRow = __webpack_require__(60);
 
 var _mergedTableRemoveRow2 = _interopRequireDefault(_mergedTableRemoveRow);
 
-var _mergedTableRemoveCol = __webpack_require__(60);
+var _mergedTableRemoveCol = __webpack_require__(61);
 
 var _mergedTableRemoveCol2 = _interopRequireDefault(_mergedTableRemoveCol);
 
-var _mergedTableAlignCol = __webpack_require__(61);
+var _mergedTableAlignCol = __webpack_require__(62);
 
 var _mergedTableAlignCol2 = _interopRequireDefault(_mergedTableAlignCol);
 
-var _mergeCell = __webpack_require__(62);
+var _mergeCell = __webpack_require__(63);
 
 var _mergeCell2 = _interopRequireDefault(_mergeCell);
 
-var _unmergeCell = __webpack_require__(63);
+var _unmergeCell = __webpack_require__(64);
 
 var _unmergeCell2 = _interopRequireDefault(_unmergeCell);
 
-var _mergedTableUI = __webpack_require__(64);
+var _mergedTableUI = __webpack_require__(65);
 
 var _mergedTableUI2 = _interopRequireDefault(_mergedTableUI);
 
@@ -1038,14 +1060,12 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  */
 /**
 * @fileoverview Implements table extension
-* @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+* @author NHN FE Development Lab <dl_javascript@nhn.com>
 */
 function tableExtension(editor) {
   var eventManager = editor.eventManager;
 
 
-  editor.toMarkOptions = editor.toMarkOptions || {};
-  editor.toMarkOptions.renderer = _toMarkRenderer2.default;
   _bindEvents(eventManager);
 
   if (editor.isViewer()) {
@@ -1053,15 +1073,25 @@ function tableExtension(editor) {
   }
 
   var wwComponentManager = editor.wwEditor.componentManager;
-  var popupTableUtils = editor._ui.popupTableUtils;
-
+  var popupTableUtils = editor.getUI().getPopupTableUtils();
 
   _addCommands(editor);
   _changeWysiwygManagers(wwComponentManager);
 
-  if (editor._ui.popupTableUtils) {
+  editor.toMarkOptions = getExtendedToMarkOptions(editor.toMarkOptions);
+
+  if (popupTableUtils) {
     _mergedTableUI2.default.updateContextMenu(popupTableUtils, eventManager, wwComponentManager.getManager('tableSelection'));
   }
+}
+
+function getExtendedToMarkOptions(toMarkOptions) {
+  var extendedOptions = toMarkOptions || {};
+  var baseRenderer = extendedOptions.renderer;
+
+  extendedOptions.renderer = (0, _toMarkRenderer.createToMarkRenderer)(baseRenderer);
+
+  return extendedOptions;
 }
 
 /**
@@ -1101,6 +1131,10 @@ function _changeHtml(html, onChangeTable) {
   if ($tables.length) {
     $tables.get().forEach(function (tableElement) {
       var changedTableElement = onChangeTable(tableElement);
+
+      if (tableElement.hasAttribute('data-tomark-pass')) {
+        changedTableElement.setAttribute('data-tomark-pass', '');
+      }
 
       (0, _jquery2.default)(tableElement).replaceWith(changedTableElement);
     });
@@ -1162,7 +1196,7 @@ function _bindEvents(eventManager) {
 _editorProxy2.default.defineExtension('table', tableExtension);
 
 /***/ }),
-/* 50 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1176,7 +1210,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var i18n = _editorProxy2.default.i18n; /**
                                        * @fileoverview i18n for table extension
-                                       * @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+                                       * @author NHN FE Development Lab <dl_javascript@nhn.com>
                                        */
 
 if (i18n) {
@@ -1209,10 +1243,10 @@ if (i18n) {
   });
 
   i18n.setLanguage(['nl', 'nl_NL'], {
-    'Merge cells': 'cellen samenvoegen',
-    'Unmerge cells': 'Samenvoegen cellen ongedaan maken',
-    'Cannot change part of merged cell': 'Kan geen deel uit van samengevoegde cel te veranderen.',
-    'Cannot paste row merged cells into the table header': 'Kan niet plakken rij samengevoegde cellen in de koptekst. '
+    'Merge cells': 'Cellen samenvoegen',
+    'Unmerge cells': 'Samengevoegde cellen ongedaan maken',
+    'Cannot change part of merged cell': 'Kan geen deel uit van een samengevoegde cel veranderen.',
+    'Cannot paste row merged cells into the table header': 'Kan geen rij met samengevoegde cellen in de koptekst plakken.'
   });
 
   i18n.setLanguage(['zh', 'zh_CN'], {
@@ -1256,10 +1290,66 @@ if (i18n) {
     'Cannot change part of merged cell': 'Birleştirilmiş hücrelerin bir kısmı değiştirelemez.',
     'Cannot paste row merged cells into the table header': 'Satırda birleştirilmiş hücreler sütun başlığına yapıştırılamaz'
   });
+
+  i18n.setLanguage(['fi', 'fi_FI'], {
+    'Merge cells': 'Yhdistä solut',
+    'Unmerge cells': 'Jaa solut',
+    'Cannot change part of merged cell': 'Yhdistettyjen solujen osaa ei voi muuttaa',
+    'Cannot paste row merged cells into the table header': 'Soluja ei voi yhdistää taulukon otsikkoriviin'
+  });
+
+  i18n.setLanguage(['cs', 'cs_CZ'], {
+    'Merge cells': 'Spojit buňky',
+    'Unmerge cells': 'Rozpojit buňky',
+    'Cannot change part of merged cell': 'Nelze měnit část spojené buňky',
+    'Cannot paste row merged cells into the table header': 'Nelze vkládat spojené buňky do záhlaví tabulky'
+  });
+
+  i18n.setLanguage(['ar', 'ar_AR'], {
+    'Merge cells': 'دمج الوحدات',
+    'Unmerge cells': 'إلغاء دمج الوحدات',
+    'Cannot change part of merged cell': 'لا يمكن تغيير جزء من الخلية المدموجة',
+    'Cannot paste row merged cells into the table header': 'لا يمكن لصق الخلايا المدموجة من صف واحد في رأس الجدول'
+  });
+
+  i18n.setLanguage(['pl', 'pl_PL'], {
+    'Merge cells': 'Scal komórki',
+    'Unmerge cells': 'Rozłącz komórki',
+    'Cannot change part of merged cell': 'Nie można zmienić części scalonej komórki.',
+    'Cannot paste row merged cells into the table header': 'Nie można wkleić komórek o scalonym rzędzie w nagłówek tabeli.'
+  });
+
+  i18n.setLanguage(['zh', 'zh_TW'], {
+    'Merge cells': '合併儲存格',
+    'Unmerge cells': '取消合併儲存格',
+    'Cannot change part of merged cell': '無法變更儲存格的一部分。',
+    'Cannot paste row merged cells into the table header': '無法將合併的儲存格貼上至表格標題中。'
+  });
+
+  i18n.setLanguage(['gl', 'gl_ES'], {
+    'Merge cells': 'Combinar celas',
+    'Unmerge cells': 'Separar celas',
+    'Cannot change part of merged cell': 'Non se pode cambiar parte dunha cela combinada',
+    'Cannot paste row merged cells into the table header': 'Non se poden pegar celas no encabezado da táboa'
+  });
+
+  i18n.setLanguage(['sv', 'sv_SE'], {
+    'Merge cells': 'Sammanfoga celler',
+    'Unmerge cells': 'Dela celler',
+    'Cannot change part of merged cell': 'Ej möjligt att ändra en del av en sammanfogad cell',
+    'Cannot paste row merged cells into the table header': 'Ej möjligt att klistra in rad-sammanfogade celler i tabellens huvud'
+  });
+
+  i18n.setLanguage(['it', 'it_IT'], {
+    'Merge cells': 'Unisci celle',
+    'Unmerge cells': 'Separa celle',
+    'Cannot change part of merged cell': 'Non è possibile modificare parte di una cella unita',
+    'Cannot paste row merged cells into the table header': 'Non è possibile incollare celle unite per riga nell\'intestazione della tabella'
+  });
 }
 
 /***/ }),
-/* 51 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1327,7 +1417,7 @@ function _extractPropertiesForMerge(value, type, oppossitType) {
  */
 /**
 * @fileoverview Implements mergedTableCreator.
-* @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+* @author NHN FE Development Lab <dl_javascript@nhn.com>
 */
 function _parseTableCell(cell) {
   var nodeName = cell.nodeName;
@@ -1490,7 +1580,7 @@ function createMergedTable(tableElement) {
 }
 
 /***/ }),
-/* 52 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1539,7 +1629,7 @@ function _prependMergeSyntaxToContent(cell) {
  */
 /**
 * @fileoverview Implements tableUnmergePreparer.
-* @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+* @author NHN FE Development Lab <dl_javascript@nhn.com>
 */
 function prepareTableUnmerge(tableElement) {
   (0, _jquery2.default)(tableElement).find('td, th').get().forEach(_prependMergeSyntaxToContent);
@@ -1548,7 +1638,7 @@ function prepareTableUnmerge(tableElement) {
 }
 
 /***/ }),
-/* 53 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1559,6 +1649,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports._getAdditionalThCount = _getAdditionalThCount;
 exports._createTheadMarkdown = _createTheadMarkdown;
+exports.createToMarkRenderer = createToMarkRenderer;
 
 var _jquery = __webpack_require__(0);
 
@@ -1568,7 +1659,7 @@ var _tuiCodeSnippet = __webpack_require__(2);
 
 var _tuiCodeSnippet2 = _interopRequireDefault(_tuiCodeSnippet);
 
-var _toMark = __webpack_require__(54);
+var _toMark = __webpack_require__(55);
 
 var _toMark2 = _interopRequireDefault(_toMark);
 
@@ -1585,7 +1676,7 @@ var RX_COLS = /@cols=[0-9]+:/g;
  */
 /**
 * @fileoverview Implements toMarkRendererCreator.
-* @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+* @author NHN FE Development Lab <dl_javascript@nhn.com>
 */
 function _createRepeatString(str, count) {
   return _tuiCodeSnippet2.default.range(0, count).map(function () {
@@ -1595,7 +1686,7 @@ function _createRepeatString(str, count) {
 
 /**
  * Make table head align text.
- * Copy from https://github.com/nhnent/to-mark/blob/develop/src/renderer.gfm.js
+ * Copy from https://github.com/nhn/to-mark/blob/develop/src/renderer.gfm.js
  * @param {HTMLElement} thElement - Table head cell element
  * @returns {string}
  * @private
@@ -1663,18 +1754,20 @@ function _createTheadMarkdown(theadElement, theadContentMarkdown) {
   return theadContentMarkdown ? theadContentMarkdown + '|' + align + '\n' : '';
 }
 
-exports.default = _toMark2.default.Renderer.factory(_toMark2.default.gfmRenderer, {
-  'THEAD': _createTheadMarkdown
-});
-
-/***/ }),
-/* 54 */
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE_54__;
+function createToMarkRenderer(baseRenderer) {
+  return _toMark2.default.Renderer.factory(baseRenderer || _toMark2.default.gfmRenderer, {
+    'THEAD': _createTheadMarkdown
+  });
+}
 
 /***/ }),
 /* 55 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE__55__;
+
+/***/ }),
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1718,7 +1811,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @fileoverview Implements wysiwyg merged table manager
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               * @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               * @author NHN FE Development Lab <dl_javascript@nhn.com>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
 
 
@@ -1730,7 +1823,7 @@ var PASTE_TABLE_CELL_BOOKMARK = 'tui-paste-table-cell-bookmark';
 
 /**
  * Class WwMergedTableManager
- * @extends {WwTableManager}
+ * @ignore
  */
 
 var WwMergedTableManager = function (_WwTableManager) {
@@ -2324,12 +2417,13 @@ var WwMergedTableManager = function (_WwTableManager) {
 
     /**
      * Paste clibpard data.
-     * @param {jQuery} $clipboardTable - jQuery table element of clipboard
+     * @param {Node} clipboardTable - table element of clipboard
      */
 
   }, {
-    key: 'pasteClipboardData',
-    value: function pasteClipboardData($clipboardTable) {
+    key: 'pasteTableData',
+    value: function pasteTableData(clipboardTable) {
+      var $clipboardTable = (0, _jquery2.default)(clipboardTable);
       var clipboardTableData = _tableDataHandler2.default.createTableData($clipboardTable);
       var tableSelectionManager = this.wwe.componentManager.getManager('tableSelection');
       var $selectedCells = tableSelectionManager.getSelectedCells();
@@ -2375,7 +2469,7 @@ function any(arr, contition) {
 exports.default = WwMergedTableManager;
 
 /***/ }),
-/* 56 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2415,7 +2509,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @fileoverview Implements wysiwyg merged table selection manager
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               * @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               * @author NHN FE Development Lab <dl_javascript@nhn.com>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
 
 
@@ -2426,16 +2520,13 @@ var TABLE_CELL_SELECTED_CLASS_NAME = 'te-cell-selected';
 
 /**
  * Class WwMergedTableSelectionManager
+ * @param {WysiwygEditor} wwe - WysiwygEditor instance
+ * @ignore
  */
 
 var WwMergedTableSelectionManager = function (_WwTableSelectionMana) {
   _inherits(WwMergedTableSelectionManager, _WwTableSelectionMana);
 
-  /**
-   * Creates an instance of WwMergedTableSelectionManager.
-   * @param {WysiwygEditor} wwe - WysiwygEditor instance
-   * @memberof WwMergedTableSelectionManager
-   */
   function WwMergedTableSelectionManager(wwe) {
     _classCallCheck(this, WwMergedTableSelectionManager);
 
@@ -2577,7 +2668,7 @@ var WwMergedTableSelectionManager = function (_WwTableSelectionMana) {
 exports.default = WwMergedTableSelectionManager;
 
 /***/ }),
-/* 57 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2617,7 +2708,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /**
 * @fileoverview Implements mergedTableAddRow. Add Row to selected table
-* @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+* @author NHN FE Development Lab <dl_javascript@nhn.com>
 */
 var CommandManager = _editorProxy2.default.CommandManager;
 
@@ -2754,7 +2845,7 @@ function _findFocusTd($newTable, rowIndex, colIndex) {
 exports.default = AddRow;
 
 /***/ }),
-/* 58 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2794,7 +2885,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /**
 * @fileoverview Implements mergedTableAddCol. Add Row to selected table.
-* @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+* @author NHN FE Development Lab <dl_javascript@nhn.com>
 */
 var CommandManager = _editorProxy2.default.CommandManager;
 
@@ -2955,7 +3046,7 @@ function _findFocusCell($newTable, rowIndex, colIndex) {
 exports.default = AddCol;
 
 /***/ }),
-/* 59 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2994,7 +3085,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /**
 * @fileoverview Implements mergedTableRemoveRow
-* @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+* @author NHN FE Development Lab <dl_javascript@nhn.com>
 */
 var CommandManager = _editorProxy2.default.CommandManager;
 
@@ -3142,7 +3233,7 @@ function _findFocusTd($newTable, rowIndex, colIndex) {
 exports.default = RemoveRow;
 
 /***/ }),
-/* 60 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3181,7 +3272,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /**
 * @fileoverview Implements mergedTableRemoveCol. Remove col to selected table
-* @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+* @author NHN FE Development Lab <dl_javascript@nhn.com>
 */
 var CommandManager = _editorProxy2.default.CommandManager;
 
@@ -3322,7 +3413,7 @@ function _findFocusCell($newTable, rowIndex, colIndex) {
 exports.default = RemoveCol;
 
 /***/ }),
-/* 61 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3360,7 +3451,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /**
 * @fileoverview Implements mergedTableAlignCol. Align selected column's text content to given direction
-* @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+* @author NHN FE Development Lab <dl_javascript@nhn.com>
 */
 var CommandManager = _editorProxy2.default.CommandManager;
 
@@ -3437,7 +3528,7 @@ function _findFocusCell($newTable, $startContainer) {
 exports.default = AlignCol;
 
 /***/ }),
-/* 62 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3476,7 +3567,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /**
 * @fileoverview Implements MergeCell
-* @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+* @author NHN FE Development Lab <dl_javascript@nhn.com>
 */
 var CommandManager = _editorProxy2.default.CommandManager;
 
@@ -3659,7 +3750,7 @@ function _findFocusCell($newTable, rowIndex, colIndex) {
 exports.default = MergeCell;
 
 /***/ }),
-/* 63 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3699,7 +3790,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /**
 * @fileoverview Implements UnmergeCell
-* @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+* @author NHN FE Development Lab <dl_javascript@nhn.com>
 */
 var CommandManager = _editorProxy2.default.CommandManager;
 
@@ -3839,7 +3930,7 @@ function _findFocusCell($newTable, rowIndex, colIndex) {
 exports.default = UnmergeCell;
 
 /***/ }),
-/* 64 */
+/* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3861,7 +3952,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /**
 * @fileoverview Implements table extension ui
-* @author NHN Ent. FE Development Lab <dl_javascript@nhnent.com>
+* @author NHN FE Development Lab <dl_javascript@nhn.com>
 */
 var i18n = _editorProxy2.default.i18n;
 

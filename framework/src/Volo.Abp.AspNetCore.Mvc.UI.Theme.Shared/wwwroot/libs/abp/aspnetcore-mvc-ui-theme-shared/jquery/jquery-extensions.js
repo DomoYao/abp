@@ -35,7 +35,12 @@
                 //change text
                 if ($buttonInnerSpan.length && $button.attr('data-busy-text')) {
                     $button.data('buttonOriginalText', $buttonInnerSpan.html());
-                    $buttonInnerSpan.html($button.attr('data-busy-text'));
+                    
+                    if ($button.data('busy-text-is-html')) {
+                        $buttonInnerSpan.html($button.attr('data-busy-text'));
+                    } else {
+                        $buttonInnerSpan.text($button.attr('data-busy-text'));
+                    }
                 }
 
                 $button.addClass('button-busy');
@@ -63,14 +68,14 @@
         });
     };
 
-    var toCamelCase = function(str) {
+    var toCamelCase = function (str) {
         var regexs = [
             /(^[A-Z])/, // first char of string
             /((\.)[A-Z])/ // first char after a dot (.)
         ];
 
         regexs.forEach(
-            function(regex) {
+            function (regex) {
                 var infLoopAvoider = 0;
 
                 while (regex.test(str)) {
@@ -87,7 +92,7 @@
         return str;
     };
 
-    $.fn.serializeFormToObject = function (camelCase = true) {
+    $.fn.serializeFormToObject = function (camelCase) {
         //serialize to array
         var data = $(this).serializeArray();
 
@@ -108,14 +113,26 @@
         //map to object
         var obj = {};
 
-        if (camelCase) {
+        if (camelCase !== undefined ? camelCase : true) {
             data.forEach(function (d) {
                 d.name = toCamelCase(d.name);
             });
         }
 
         data.map(function (x) {
-                obj[x.name] = x.value;
+            //TODO: improve mapping. it only supports one level deep object.
+            var names = x.name.split(".");
+            if (names.length === 1 && !obj[names[0]]) {
+                obj[names[0]] = x.value;
+            }
+            else if (names.length === 2) {
+                if (!obj[names[0]]) {
+                    obj[names[0]] = {};
+                }
+                if (!obj[names[0]][names[1]]) {
+                    obj[names[0]][names[1]] = x.value;
+                }
+            }
         });
 
         return obj;
@@ -148,11 +165,11 @@
                             formSaved = true;
                             $modal.modal('hide');
                         }
-                    });
+                    }, false);
             }
         });
 
-        $(this).on('abp-ajax-success',function () {
+        $(this).on('abp-ajax-success', function () {
             formSaved = true;
         });
     };

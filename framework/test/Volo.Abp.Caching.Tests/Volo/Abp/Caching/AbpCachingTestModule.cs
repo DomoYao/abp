@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
 using System;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;
 
 namespace Volo.Abp.Caching
@@ -9,7 +11,7 @@ namespace Volo.Abp.Caching
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<CacheOptions>(option =>
+            Configure<AbpDistributedCacheOptions>(option =>
             {
                 option.CacheConfigurators.Add(cacheName =>
                 {
@@ -26,6 +28,8 @@ namespace Volo.Abp.Caching
 
                 option.GlobalCacheEntryOptions.SetSlidingExpiration(TimeSpan.FromMinutes(20));
             });
+
+            context.Services.Replace(ServiceDescriptor.Singleton<IDistributedCache, TestMemoryDistributedCache>());
         }
     }
 }

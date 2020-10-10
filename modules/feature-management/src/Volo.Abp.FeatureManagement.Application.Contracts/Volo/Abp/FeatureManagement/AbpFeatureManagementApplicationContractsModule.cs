@@ -1,6 +1,5 @@
 ﻿using Volo.Abp.Application;
-using Volo.Abp.FeatureManagement.Localization;
-using Volo.Abp.Localization;
+using Volo.Abp.Json.Newtonsoft;
 using Volo.Abp.Modularity;
 using Volo.Abp.VirtualFileSystem;
 
@@ -14,16 +13,14 @@ namespace Volo.Abp.FeatureManagement
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<VirtualFileSystemOptions>(options =>
+            Configure<AbpVirtualFileSystemOptions>(options =>
             {
                 options.FileSets.AddEmbedded<AbpFeatureManagementApplicationContractsModule>();
             });
 
-            Configure<AbpLocalizationOptions>(options =>
+            Configure<AbpNewtonsoftJsonSerializerOptions>(options =>
             {
-                options.Resources
-                    .Get<AbpFeatureManagementResource>()
-                    .AddVirtualJson("/Volo/Abp/FeatureManagement/Localization/ApplicationContracts");
+                options.Converters.Add<StringValueTypeJsonConverter>();
             });
         }
     }

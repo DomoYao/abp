@@ -1,8 +1,11 @@
 ﻿using Volo.Blogging.Tagging;
+using Volo.Blogging.MongoDB;
+using Xunit;
 
 namespace Volo.Blogging
 {
-    public class TagRepository_Tests : TagRepository_Tests<BloggingMongoDBTestModule>
+    [Collection(MongoTestCollection.Name)]
+    public class TagRepository_Tests : TagRepository_Tests<BloggingMongoDbTestModule>
     {
     }
 }

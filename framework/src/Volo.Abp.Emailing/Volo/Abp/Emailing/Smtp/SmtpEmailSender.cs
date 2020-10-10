@@ -4,7 +4,6 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.Threading;
 
 namespace Volo.Abp.Emailing.Smtp
 {
@@ -73,14 +72,6 @@ namespace Volo.Abp.Emailing.Smtp
             using (var smtpClient = await BuildClientAsync())
             {
                 await smtpClient.SendMailAsync(mail);
-            }
-        }
-
-        protected override void SendEmail(MailMessage mail)
-        {
-            using (var smtpClient = AsyncHelper.RunSync(BuildClientAsync))
-            {
-                smtpClient.Send(mail);
             }
         }
     }

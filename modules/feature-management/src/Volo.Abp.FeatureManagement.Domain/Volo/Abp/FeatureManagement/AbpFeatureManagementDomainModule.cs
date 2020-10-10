@@ -1,10 +1,8 @@
 ﻿using Volo.Abp.Caching;
 using Volo.Abp.FeatureManagement.Localization;
 using Volo.Abp.Features;
-using Volo.Abp.Localization;
 using Volo.Abp.Localization.ExceptionHandling;
 using Volo.Abp.Modularity;
-using Volo.Abp.VirtualFileSystem;
 
 namespace Volo.Abp.FeatureManagement
 {
@@ -27,19 +25,7 @@ namespace Volo.Abp.FeatureManagement
                 options.ProviderPolicies[TenantFeatureValueProvider.ProviderName] = "AbpTenantManagement.Tenants.ManageFeatures";
             });
 
-            Configure<VirtualFileSystemOptions>(options =>
-            {
-                options.FileSets.AddEmbedded<AbpFeatureManagementDomainModule>();
-            });
-
-            Configure<AbpLocalizationOptions>(options =>
-            {
-                options.Resources
-                    .Get<AbpFeatureManagementResource>()
-                    .AddVirtualJson("/Volo/Abp/FeatureManagement/Localization/Domain");
-            });
-
-            Configure<ExceptionLocalizationOptions>(options =>
+            Configure<AbpExceptionLocalizationOptions>(options =>
             {
                 options.MapCodeNamespace("AbpFeatureManagement", typeof(AbpFeatureManagementResource));
             });

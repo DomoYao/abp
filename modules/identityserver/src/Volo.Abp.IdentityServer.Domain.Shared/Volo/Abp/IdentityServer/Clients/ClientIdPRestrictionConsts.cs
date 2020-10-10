@@ -2,6 +2,9 @@
 {
     public class ClientIdPRestrictionConsts
     {
-        public const int ProviderMaxLength = 64;
+        /// <summary>
+        /// Default value: 200
+        /// </summary>
+        public static int ProviderMaxLength { get; set; } = 200;
     }
 }

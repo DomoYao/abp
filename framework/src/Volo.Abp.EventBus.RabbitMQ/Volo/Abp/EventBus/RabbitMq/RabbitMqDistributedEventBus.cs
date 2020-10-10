@@ -3,11 +3,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Distributed;
+using Volo.Abp.MultiTenancy;
 using Volo.Abp.RabbitMQ;
 using Volo.Abp.Threading;
 
@@ -21,11 +23,11 @@ namespace Volo.Abp.EventBus.RabbitMq
     [ExposeServices(typeof(IDistributedEventBus), typeof(RabbitMqDistributedEventBus))]
     public class RabbitMqDistributedEventBus : EventBusBase, IDistributedEventBus, ISingletonDependency
     {
-        protected RabbitMqEventBusOptions RabbitMqEventBusOptions { get; }
-        protected DistributedEventBusOptions DistributedEventBusOptions { get; }
+        protected AbpRabbitMqEventBusOptions AbpRabbitMqEventBusOptions { get; }
+        protected AbpDistributedEventBusOptions AbpDistributedEventBusOptions { get; }
         protected IConnectionPool ConnectionPool { get; }
         protected IRabbitMqSerializer Serializer { get; }
-        
+
         //TODO: Accessing to the List<IEventHandlerFactory> may not be thread-safe!
         protected ConcurrentDictionary<Type, List<IEventHandlerFactory>> HandlerFactories { get; }
         protected ConcurrentDictionary<string, Type> EventTypes { get; }
@@ -33,46 +35,45 @@ namespace Volo.Abp.EventBus.RabbitMq
         protected IRabbitMqMessageConsumer Consumer { get; private set; }
 
         public RabbitMqDistributedEventBus(
-            IOptions<RabbitMqEventBusOptions> options,
+            IOptions<AbpRabbitMqEventBusOptions> options,
             IConnectionPool connectionPool,
             IRabbitMqSerializer serializer,
-            IHybridServiceScopeFactory serviceScopeFactory, 
-            IOptions<DistributedEventBusOptions> distributedEventBusOptions,
-            IRabbitMqMessageConsumerFactory messageConsumerFactory)
-            : base(serviceScopeFactory)
+            IServiceScopeFactory serviceScopeFactory,
+            IOptions<AbpDistributedEventBusOptions> distributedEventBusOptions,
+            IRabbitMqMessageConsumerFactory messageConsumerFactory,
+            ICurrentTenant currentTenant)
+            : base(serviceScopeFactory, currentTenant)
         {
             ConnectionPool = connectionPool;
             Serializer = serializer;
             MessageConsumerFactory = messageConsumerFactory;
-            DistributedEventBusOptions = distributedEventBusOptions.Value;
-            RabbitMqEventBusOptions = options.Value;
-            
+            AbpDistributedEventBusOptions = distributedEventBusOptions.Value;
+            AbpRabbitMqEventBusOptions = options.Value;
+
             HandlerFactories = new ConcurrentDictionary<Type, List<IEventHandlerFactory>>();
             EventTypes = new ConcurrentDictionary<string, Type>();
-
-            Initialize();
         }
 
         public void Initialize()
         {
             Consumer = MessageConsumerFactory.Create(
                 new ExchangeDeclareConfiguration(
-                    RabbitMqEventBusOptions.ExchangeName,
+                    AbpRabbitMqEventBusOptions.ExchangeName,
                     type: "direct",
                     durable: true
                 ),
                 new QueueDeclareConfiguration(
-                    RabbitMqEventBusOptions.ClientName,
+                    AbpRabbitMqEventBusOptions.ClientName,
                     durable: true,
                     exclusive: false,
                     autoDelete: false
                 ),
-                RabbitMqEventBusOptions.ConnectionName
+                AbpRabbitMqEventBusOptions.ConnectionName
             );
 
             Consumer.OnMessageReceived(ProcessEventAsync);
 
-            SubscribeHandlers(DistributedEventBusOptions.Handlers);
+            SubscribeHandlers(AbpDistributedEventBusOptions.Handlers);
         }
 
         private async Task ProcessEventAsync(IModel channel, BasicDeliverEventArgs ea)
@@ -84,7 +85,7 @@ namespace Volo.Abp.EventBus.RabbitMq
                 return;
             }
 
-            var eventData = Serializer.Deserialize(ea.Body, eventType);
+            var eventData = Serializer.Deserialize(ea.Body.ToArray(), eventType);
 
             await TriggerHandlersAsync(eventType, eventData);
         }
@@ -97,7 +98,12 @@ namespace Volo.Abp.EventBus.RabbitMq
         public override IDisposable Subscribe(Type eventType, IEventHandlerFactory factory)
         {
             var handlerFactories = GetOrCreateHandlerFactories(eventType);
-            
+
+            if (factory.IsInFactories(handlerFactories))
+            {
+                return NullDisposable.Instance;
+            }
+
             handlerFactories.Add(factory);
 
             if (handlerFactories.Count == 1) //TODO: Multi-threading!
@@ -167,19 +173,19 @@ namespace Volo.Abp.EventBus.RabbitMq
             var eventName = EventNameAttribute.GetNameOrDefault(eventType);
             var body = Serializer.Serialize(eventData);
 
-            using (var channel = ConnectionPool.Get(RabbitMqEventBusOptions.ConnectionName).CreateModel())
+            using (var channel = ConnectionPool.Get(AbpRabbitMqEventBusOptions.ConnectionName).CreateModel())
             {
                 channel.ExchangeDeclare(
-                    RabbitMqEventBusOptions.ExchangeName,
+                    AbpRabbitMqEventBusOptions.ExchangeName,
                     "direct",
                     durable: true
                 );
-                
+
                 var properties = channel.CreateBasicProperties();
                 properties.DeliveryMode = RabbitMqConsts.DeliveryModes.Persistent;
 
                 channel.BasicPublish(
-                   exchange: RabbitMqEventBusOptions.ExchangeName,
+                   exchange: AbpRabbitMqEventBusOptions.ExchangeName,
                     routingKey: eventName,
                     mandatory: true,
                     basicProperties: properties,

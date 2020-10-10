@@ -88,7 +88,7 @@ namespace System.Collections.Generic
         }
 
         /// <summary>
-        /// Removed all items from the collection those satisfy the given <paramref name="predicate"/>.
+        /// Removes all items from the collection those satisfy the given <paramref name="predicate"/>.
         /// </summary>
         /// <typeparam name="T">Type of the items in the collection</typeparam>
         /// <param name="source">The collection</param>
@@ -104,6 +104,20 @@ namespace System.Collections.Generic
             }
 
             return items;
+        }
+
+        /// <summary>
+        /// Removes all items from the collection those satisfy the given <paramref name="predicate"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of the items in the collection</typeparam>
+        /// <param name="source">The collection</param>
+        /// <param name="items">Items to be removed from the list</param>
+        public static void RemoveAll<T>([NotNull] this ICollection<T> source, IEnumerable<T> items)
+        {
+            foreach (var item in items)
+            {
+                source.Remove(item);
+            }
         }
     }
 }

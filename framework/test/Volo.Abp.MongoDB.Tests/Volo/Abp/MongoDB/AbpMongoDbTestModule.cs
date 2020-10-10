@@ -1,10 +1,15 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Mongo2Go;
+﻿using System;
+using System.Linq;
+using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Driver;
+using MongoDB.Driver.Core.Servers;
 using Volo.Abp.Data;
 using Volo.Abp.Modularity;
 using Volo.Abp.TestApp;
 using Volo.Abp.TestApp.Domain;
-using Volo.Abp.TestApp.MongoDb;
+using Volo.Abp.TestApp.MongoDB;
+using Volo.Abp.Uow;
 
 namespace Volo.Abp.MongoDB
 {
@@ -14,15 +19,15 @@ namespace Volo.Abp.MongoDB
         )]
     public class AbpMongoDbTestModule : AbpModule
     {
-        private MongoDbRunner _mongoDbRunner;
-
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            _mongoDbRunner = MongoDbRunner.Start();
+            var connectionString = MongoDbFixture.ConnectionString.EnsureEndsWith('/')  +
+                                   "Db_" +
+                                   Guid.NewGuid().ToString("N");
 
-            Configure<DbConnectionOptions>(options =>
+            Configure<AbpDbConnectionOptions>(options =>
             {
-                options.ConnectionStrings.Default = _mongoDbRunner.ConnectionString;
+                options.ConnectionStrings.Default = connectionString;
             });
 
             context.Services.AddMongoDbContext<TestAppMongoDbContext>(options =>
@@ -30,11 +35,11 @@ namespace Volo.Abp.MongoDB
                 options.AddDefaultRepositories<ITestAppMongoDbContext>();
                 options.AddRepository<City, CityRepository>();
             });
-        }
 
-        public override void OnApplicationShutdown(ApplicationShutdownContext context)
-        {
-            _mongoDbRunner.Dispose();
+            Configure<AbpUnitOfWorkDefaultOptions>(options =>
+            {
+                options.TransactionBehavior = UnitOfWorkTransactionBehavior.Disabled;
+            });
         }
     }
 }

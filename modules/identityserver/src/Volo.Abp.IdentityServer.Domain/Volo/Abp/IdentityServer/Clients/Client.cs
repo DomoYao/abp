@@ -78,6 +78,12 @@ namespace Volo.Abp.IdentityServer.Clients
 
         public virtual string PairWiseSubjectSalt { get; set; }
 
+        public virtual int? UserSsoLifetime { get; set; }
+
+        public virtual string UserCodeType { get; set; }
+
+        public virtual int DeviceCodeLifetime { get; set; } = 300;
+
         public virtual List<ClientScope> AllowedScopes { get; set; }
 
         public virtual List<ClientSecret> ClientSecrets { get; set; }
@@ -102,10 +108,10 @@ namespace Volo.Abp.IdentityServer.Clients
         }
 
         public Client(Guid id, [NotNull] string clientId)
+        : base(id)
         {
             Check.NotNull(clientId, nameof(clientId));
 
-            Id = id;
             ClientId = clientId;
 
             //TODO: Replace magics with constants?

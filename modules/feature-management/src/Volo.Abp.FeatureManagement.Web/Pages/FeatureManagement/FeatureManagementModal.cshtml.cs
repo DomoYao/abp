@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
+using Volo.Abp.Features;
 using Volo.Abp.Validation.StringValues;
 
 namespace Volo.Abp.FeatureManagement.Web.Pages.FeatureManagement
@@ -15,50 +16,64 @@ namespace Volo.Abp.FeatureManagement.Web.Pages.FeatureManagement
         [BindProperty(SupportsGet = true)]
         public string ProviderName { get; set; }
 
-        [Required]
         [HiddenInput]
         [BindProperty(SupportsGet = true)]
         public string ProviderKey { get; set; }
 
         [BindProperty]
-        public List<FeatureViewModel> Features { get; set; }
+        public List<FeatureGroupViewModel> FeatureGroups { get; set; }
 
-        public FeatureListDto FeatureListDto { get; set; }
+        public GetFeatureListResultDto FeatureListResultDto { get; set; }
 
-        private readonly IFeatureAppService _featureAppService;
+        protected IFeatureAppService FeatureAppService { get; }
 
         public FeatureManagementModal(IFeatureAppService featureAppService)
         {
-            _featureAppService = featureAppService;
+            ObjectMapperContext = typeof(AbpFeatureManagementWebModule);
+
+            FeatureAppService = featureAppService;
         }
 
-        public async Task OnGetAsync()
+        public virtual async Task<IActionResult> OnGetAsync()
         {
-            FeatureListDto = await _featureAppService.GetAsync(ProviderName, ProviderKey);
+            ValidateModel();
+
+            FeatureListResultDto = await FeatureAppService.GetAsync(ProviderName, ProviderKey);
+
+            return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync()
+        public virtual async Task<IActionResult> OnPostAsync()
         {
             var features = new UpdateFeaturesDto
             {
-                Features = Features.Select(f => new UpdateFeatureDto
+                Features = FeatureGroups.SelectMany(g => g.Features).Select(f => new UpdateFeatureDto
                 {
                     Name = f.Name,
                     Value = f.Type == nameof(ToggleStringValueType) ? f.BoolValue.ToString() : f.Value
                 }).ToList()
             };
 
-            await _featureAppService.UpdateAsync(ProviderName, ProviderKey, features);
+            await FeatureAppService.UpdateAsync(ProviderName, ProviderKey, features);
 
             return NoContent();
         }
 
+        public virtual bool IsDisabled(string providerName)
+        {
+            return providerName != ProviderName && providerName != DefaultValueFeatureValueProvider.ProviderName;
+        }
 
         public class ProviderInfoViewModel
         {
             public string ProviderName { get; set; }
 
             public string ProviderKey { get; set; }
+        }
+
+        public class FeatureGroupViewModel
+        {
+            public List<FeatureViewModel> Features { get; set; }
         }
 
         public class FeatureViewModel

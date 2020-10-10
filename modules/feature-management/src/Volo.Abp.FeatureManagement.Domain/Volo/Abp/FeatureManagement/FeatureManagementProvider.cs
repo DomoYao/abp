@@ -14,7 +14,12 @@ namespace Volo.Abp.FeatureManagement
             Store = store;
         }
 
-        public async Task<string> GetOrNullAsync(FeatureDefinition feature, string providerKey)
+        public virtual bool Compatible(string providerName)
+        {
+            return providerName == Name;
+        }
+
+        public virtual async Task<string> GetOrNullAsync(FeatureDefinition feature, string providerKey)
         {
             return await Store.GetOrNullAsync(feature.Name, Name, NormalizeProviderKey(providerKey));
         }

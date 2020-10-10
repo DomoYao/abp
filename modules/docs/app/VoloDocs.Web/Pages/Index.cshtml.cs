@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Options;
 using Volo.Docs;
 using Volo.Docs.Projects;
 
@@ -11,28 +14,46 @@ namespace VoloDocs.Web.Pages
     {
         public IReadOnlyList<ProjectDto> Projects { get; set; }
 
+        private readonly DocsUiOptions _urlUiOptions;
+
         private readonly IProjectAppService _projectAppService;
 
-        public IndexModel(IProjectAppService projectAppService)
+        public IndexModel(IOptions<DocsUiOptions> urlOptions, IProjectAppService projectAppService)
         {
             _projectAppService = projectAppService;
+            _urlUiOptions = urlOptions.Value;
         }
 
-        public async Task<IActionResult> OnGet()
+        public virtual async Task<IActionResult> OnGetAsync()
         {
-            Projects = (await _projectAppService.GetListAsync()).Items;
+            var projects = await _projectAppService.GetListAsync();
 
-            if (Projects.Count == 1)
+            if (projects.Items.Count == 1)
             {
-                return RedirectToPage("./Documents/Project/Index", new
-                {
-                    projectName = Projects[0].ShortName,
-                    version = DocsAppConsts.Latest,
-                    documentName = Projects[0].DefaultDocumentName
-                });
+                return await RedirectToProjectAsync(projects.Items.First());
+            }
+            else if (projects.Items.Count > 1)
+            {
+                Projects = projects.Items;
             }
 
             return Page();
+        }
+
+        private async Task<IActionResult> RedirectToProjectAsync(ProjectDto project, string language = "en", string version = null)
+        {
+            var path = GetUrlForProject(project, language, version);
+            return await Task.FromResult(Redirect(path));
+        }
+
+        //Eg: "/en/abp/latest"
+        public string GetUrlForProject(ProjectDto project, string language = "en", string version = null)
+        {
+            return "." +
+                   _urlUiOptions.RoutePrefix.EnsureStartsWith('/').EnsureEndsWith('/') +
+                   language.EnsureEndsWith('/') +
+                   project.ShortName.EnsureEndsWith('/') +
+                   (version ?? DocsAppConsts.Latest);
         }
     }
 }

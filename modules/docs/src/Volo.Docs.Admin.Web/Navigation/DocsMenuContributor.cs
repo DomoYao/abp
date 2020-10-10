@@ -19,18 +19,23 @@ namespace Volo.Docs.Admin.Navigation
 
         private async Task ConfigureMainMenu(MenuConfigurationContext context)
         {
-            var authorizationService = context.ServiceProvider.GetRequiredService<IAuthorizationService>();
-            var l = context.ServiceProvider.GetRequiredService<IStringLocalizer<DocsResource>>();
+            var administrationMenu = context.Menu.GetAdministration();
 
-            var rootMenuItem = new ApplicationMenuItem(DocsMenuNames.GroupName, l["Menu:DocumentManagement"], icon: "fa fa-book");
+            var l = context.GetLocalizer<DocsResource>();
 
-            context.Menu.AddItem(rootMenuItem);
+            var rootMenuItem = new ApplicationMenuItem(DocsMenuNames.GroupName, l["Menu:Documents"], icon: "fa fa-book");
 
-            if (await authorizationService.IsGrantedAsync(DocsAdminPermissions.Projects.Default))
+            administrationMenu.AddItem(rootMenuItem);
+
+            if (await context.IsGrantedAsync(DocsAdminPermissions.Projects.Default))
             {
-                rootMenuItem.AddItem(new ApplicationMenuItem(DocsMenuNames.Projects, l["Menu:ProjectManagement"], "/Docs/Admin/Projects"));
+                rootMenuItem.AddItem(new ApplicationMenuItem(DocsMenuNames.Projects, l["Menu:ProjectManagement"], "~/Docs/Admin/Projects"));
             }
 
+            if (await context.IsGrantedAsync(DocsAdminPermissions.Documents.Default))
+            {
+                rootMenuItem.AddItem(new ApplicationMenuItem(DocsMenuNames.Documents, l["Menu:DocumentManagement"], "~/Docs/Admin/Documents"));
+            }
         }
     }
 }

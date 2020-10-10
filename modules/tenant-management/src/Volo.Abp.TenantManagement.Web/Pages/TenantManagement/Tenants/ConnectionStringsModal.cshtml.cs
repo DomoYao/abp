@@ -1,45 +1,47 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
+using Volo.Abp.Validation;
 
 namespace Volo.Abp.TenantManagement.Web.Pages.TenantManagement.Tenants
 {
-    public class ConnectionStringsModal : AbpPageModel
+    public class ConnectionStringsModal : TenantManagementPageModel
     {
         [BindProperty]
         public TenantInfoModel Tenant { get; set; }
 
-        private readonly ITenantAppService _tenantAppService;
+        protected ITenantAppService TenantAppService { get; }
 
         public ConnectionStringsModal(ITenantAppService tenantAppService)
         {
-            _tenantAppService = tenantAppService;
+            TenantAppService = tenantAppService;
         }
 
-        public async Task OnGetAsync(Guid id)
+        public virtual async Task<IActionResult> OnGetAsync(Guid id)
         {
-            var defaultConnectionString = await _tenantAppService.GetDefaultConnectionStringAsync(id);
+            var defaultConnectionString = await TenantAppService.GetDefaultConnectionStringAsync(id);
             Tenant = new TenantInfoModel
             {
                 Id = id,
                 DefaultConnectionString = defaultConnectionString,
                 UseSharedDatabase = defaultConnectionString.IsNullOrWhiteSpace()
             };
+
+            return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync()
+        public virtual async Task<IActionResult> OnPostAsync()
         {
             ValidateModel();
 
             if (Tenant.UseSharedDatabase || Tenant.DefaultConnectionString.IsNullOrWhiteSpace())
             {
-                await _tenantAppService.DeleteDefaultConnectionStringAsync(Tenant.Id);
+                await TenantAppService.DeleteDefaultConnectionStringAsync(Tenant.Id);
             }
             else
             {
-                await _tenantAppService.UpdateDefaultConnectionStringAsync(Tenant.Id, Tenant.DefaultConnectionString);
+                await TenantAppService.UpdateDefaultConnectionStringAsync(Tenant.Id, Tenant.DefaultConnectionString);
             }
 
             return NoContent();
@@ -52,7 +54,7 @@ namespace Volo.Abp.TenantManagement.Web.Pages.TenantManagement.Tenants
 
             public bool UseSharedDatabase { get; set; }
 
-            [StringLength(TenantConnectionStringConsts.MaxNameLength)]
+            [DynamicStringLength(typeof(TenantConnectionStringConsts), nameof(TenantConnectionStringConsts.MaxValueLength))]
             public string DefaultConnectionString { get; set; }
         }
     }

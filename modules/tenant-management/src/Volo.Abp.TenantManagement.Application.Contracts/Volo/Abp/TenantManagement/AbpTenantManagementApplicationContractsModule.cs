@@ -1,28 +1,25 @@
 ﻿using Volo.Abp.Application;
-using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
-using Volo.Abp.TenantManagement.Localization;
-using Volo.Abp.VirtualFileSystem;
+using Volo.Abp.ObjectExtending;
+using Volo.Abp.ObjectExtending.Modularity;
 
 namespace Volo.Abp.TenantManagement
 {
-    [DependsOn(typeof(AbpDddApplicationModule))]
-    [DependsOn(typeof(AbpTenantManagementDomainSharedModule))]
+    [DependsOn(
+        typeof(AbpDddApplicationModule),
+        typeof(AbpTenantManagementDomainSharedModule))]
     public class AbpTenantManagementApplicationContractsModule : AbpModule
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
+        public override void PostConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<VirtualFileSystemOptions>(options =>
-            {
-                options.FileSets.AddEmbedded<AbpTenantManagementApplicationContractsModule>();
-            });
-
-            Configure<AbpLocalizationOptions>(options =>
-            {
-                options.Resources
-                    .Get<AbpTenantManagementResource>()
-                    .AddVirtualJson("/Volo/Abp/TenantManagement/Localization/ApplicationContracts");
-            });
+            ModuleExtensionConfigurationHelper
+                .ApplyEntityConfigurationToApi(
+                    TenantManagementModuleExtensionConsts.ModuleName,
+                    TenantManagementModuleExtensionConsts.EntityNames.Tenant,
+                    getApiTypes: new[] { typeof(TenantDto) },
+                    createApiTypes: new[] { typeof(TenantCreateDto) },
+                    updateApiTypes: new[] { typeof(TenantUpdateDto) }
+                );
         }
     }
 }

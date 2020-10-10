@@ -1,19 +1,24 @@
-﻿using System;
-using System.ComponentModel;
+using System;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Volo.Abp.Account.Web.Settings;
+using Microsoft.Extensions.Logging;
+using Volo.Abp.Account.Settings;
+using Volo.Abp.Auditing;
 using Volo.Abp.Identity;
 using Volo.Abp.Settings;
-using Volo.Abp.UI;
-using Volo.Abp.Uow;
+using Volo.Abp.Validation;
+using IdentityUser = Volo.Abp.Identity.IdentityUser;
 
 namespace Volo.Abp.Account.Web.Pages.Account
 {
     public class RegisterModel : AccountPageModel
     {
+
         [BindProperty(SupportsGet = true)]
         public string ReturnUrl { get; set; }
 
@@ -23,32 +28,128 @@ namespace Volo.Abp.Account.Web.Pages.Account
         [BindProperty]
         public PostInput Input { get; set; }
 
-        public virtual async Task OnGet()
+        [BindProperty(SupportsGet = true)]
+        public bool IsExternalLogin { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string ExternalLoginAuthSchema { get; set; }
+
+        public RegisterModel(IAccountAppService accountAppService)
         {
-            await CheckSelfRegistrationAsync();
+            AccountAppService = accountAppService;
         }
 
-        [UnitOfWork] //TODO: Will be removed when we implement action filter
+        public virtual async Task<IActionResult> OnGetAsync()
+        {
+            await CheckSelfRegistrationAsync();
+            await TrySetEmailAsync();
+            return Page();
+        }
+
+        private async Task TrySetEmailAsync()
+        {
+            if (IsExternalLogin)
+            {
+                var externalLoginInfo = await SignInManager.GetExternalLoginInfoAsync();
+                if (externalLoginInfo == null)
+                {
+                    return;
+                }
+
+                if (!externalLoginInfo.Principal.Identities.Any())
+                {
+                    return;
+                }
+
+                var identity = externalLoginInfo.Principal.Identities.First();
+                var emailClaim = identity.FindFirst(ClaimTypes.Email);
+
+                if (emailClaim == null)
+                {
+                    return;
+                }
+
+                Input = new PostInput {EmailAddress = emailClaim.Value};
+            }
+        }
+
         public virtual async Task<IActionResult> OnPostAsync()
+        {
+            try
+            {
+                await CheckSelfRegistrationAsync();
+
+                if (IsExternalLogin)
+                {
+                    var externalLoginInfo = await SignInManager.GetExternalLoginInfoAsync();
+                    if (externalLoginInfo == null)
+                    {
+                        Logger.LogWarning("External login info is not available");
+                        return RedirectToPage("./Login");
+                    }
+
+                    await RegisterExternalUserAsync(externalLoginInfo, Input.EmailAddress);
+                }
+                else
+                {
+                    await RegisterLocalUserAsync();
+                }
+
+                return Redirect(ReturnUrl ?? "~/"); //TODO: How to ensure safety? IdentityServer requires it however it should be checked somehow!
+            }
+            catch (BusinessException e)
+            {
+                Alerts.Danger(e.Message);
+                return Page();
+            }
+        }
+
+        protected virtual async Task RegisterLocalUserAsync()
         {
             ValidateModel();
 
-            await CheckSelfRegistrationAsync();
+            var userDto = await AccountAppService.RegisterAsync(
+                new RegisterDto
+                {
+                    AppName = "MVC",
+                    EmailAddress = Input.EmailAddress,
+                    Password = Input.Password,
+                    UserName = Input.UserName
+                }
+            );
 
-            var user = new IdentityUser(GuidGenerator.Create(), Input.UserName, Input.EmailAddress, CurrentTenant.Id);
+            var user = await UserManager.GetByIdAsync(userDto.Id);
+            await SignInManager.SignInAsync(user, isPersistent: true);
+        }
 
-            (await UserManager.CreateAsync(user, Input.Password)).CheckErrors();
-            
-            await UserManager.SetEmailAsync(user, Input.EmailAddress);
+        protected virtual async Task RegisterExternalUserAsync(ExternalLoginInfo externalLoginInfo, string emailAddress)
+        {
+            var user = new IdentityUser(GuidGenerator.Create(), emailAddress, emailAddress, CurrentTenant.Id);
 
-            await SignInManager.SignInAsync(user, isPersistent: false);
+            (await UserManager.CreateAsync(user)).CheckErrors();
+            (await UserManager.AddDefaultRolesAsync(user)).CheckErrors();
 
-            return Redirect(ReturnUrl ?? "/"); //TODO: How to ensure safety? IdentityServer requires it however it should be checked somehow!
+            var userLoginAlreadyExists = user.Logins.Any(x =>
+                x.TenantId == user.TenantId &&
+                x.LoginProvider == externalLoginInfo.LoginProvider &&
+                x.ProviderKey == externalLoginInfo.ProviderKey);
+
+            if (!userLoginAlreadyExists)
+            {
+                (await UserManager.AddLoginAsync(user, new UserLoginInfo(
+                    externalLoginInfo.LoginProvider,
+                    externalLoginInfo.ProviderKey,
+                    externalLoginInfo.ProviderDisplayName
+                ))).CheckErrors();
+            }
+
+            await SignInManager.SignInAsync(user, isPersistent: true);
         }
 
         protected virtual async Task CheckSelfRegistrationAsync()
         {
-            if (!await SettingProvider.IsTrueAsync(AccountSettingNames.IsSelfRegistrationEnabled))
+            if (!await SettingProvider.IsTrueAsync(AccountSettingNames.IsSelfRegistrationEnabled) ||
+                !await SettingProvider.IsTrueAsync(AccountSettingNames.EnableLocalLogin))
             {
                 throw new UserFriendlyException(L["SelfRegistrationDisabledMessage"]);
             }
@@ -57,17 +158,18 @@ namespace Volo.Abp.Account.Web.Pages.Account
         public class PostInput
         {
             [Required]
-            [StringLength(32)]
+            [DynamicStringLength(typeof(IdentityUserConsts), nameof(IdentityUserConsts.MaxUserNameLength))]
             public string UserName { get; set; }
 
             [Required]
             [EmailAddress]
-            [StringLength(255)]
+            [DynamicStringLength(typeof(IdentityUserConsts), nameof(IdentityUserConsts.MaxEmailLength))]
             public string EmailAddress { get; set; }
 
             [Required]
-            [StringLength(32)]
+            [DynamicStringLength(typeof(IdentityUserConsts), nameof(IdentityUserConsts.MaxPasswordLength))]
             [DataType(DataType.Password)]
+            [DisableAuditing]
             public string Password { get; set; }
         }
     }

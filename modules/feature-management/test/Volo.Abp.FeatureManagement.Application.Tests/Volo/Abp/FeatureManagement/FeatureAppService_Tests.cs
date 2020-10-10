@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
@@ -39,10 +38,10 @@ namespace Volo.Abp.FeatureManagement
             Login(_testData.User1Id);
 
             var featureList = await _featureAppService.GetAsync(EditionFeatureValueProvider.ProviderName,
-                TestEditionIds.Regular.ToString("N"));
+                TestEditionIds.Regular.ToString());
 
             featureList.ShouldNotBeNull();
-            featureList.Features.ShouldContain(feature => feature.Name == TestFeatureDefinitionProvider.SocialLogins);
+            featureList.Groups.SelectMany(g =>g .Features).ShouldContain(feature => feature.Name == TestFeatureDefinitionProvider.SocialLogins);
         }
 
         [Fact]
@@ -51,7 +50,7 @@ namespace Volo.Abp.FeatureManagement
             Login(_testData.User1Id);
 
             await _featureAppService.UpdateAsync(EditionFeatureValueProvider.ProviderName,
-                TestEditionIds.Regular.ToString("N"), new UpdateFeaturesDto()
+                TestEditionIds.Regular.ToString(), new UpdateFeaturesDto()
                 {
                     Features = new List<UpdateFeatureDto>()
                     {
@@ -64,7 +63,7 @@ namespace Volo.Abp.FeatureManagement
                 });
 
             (await _featureAppService.GetAsync(EditionFeatureValueProvider.ProviderName,
-                    TestEditionIds.Regular.ToString("N"))).Features.Any(x =>
+                    TestEditionIds.Regular.ToString())).Groups.SelectMany(g => g.Features).Any(x =>
                     x.Name == TestFeatureDefinitionProvider.SocialLogins &&
                     x.Value == false.ToString().ToLowerInvariant())
                 .ShouldBeTrue();

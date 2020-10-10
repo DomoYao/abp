@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Volo.Abp.Application.Dtos;
+using Volo.Docs.Projects;
 
 namespace Volo.Docs.Admin.Projects
 {
@@ -16,6 +17,8 @@ namespace Volo.Docs.Admin.Projects
         public string DefaultDocumentName { get; set; }
 
         public string NavigationDocumentName { get; set; }
+
+        public string ParametersDocumentName { get; set; }
 
         public string MinimumVersion { get; set; }
 

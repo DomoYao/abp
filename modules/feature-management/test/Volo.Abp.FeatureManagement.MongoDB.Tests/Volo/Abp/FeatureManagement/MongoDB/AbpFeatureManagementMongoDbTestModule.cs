@@ -1,6 +1,7 @@
-﻿using Mongo2Go;
+﻿using System;
 using Volo.Abp.Data;
 using Volo.Abp.Modularity;
+using Volo.Abp.Uow;
 
 namespace Volo.Abp.FeatureManagement.MongoDB
 {
@@ -10,21 +11,21 @@ namespace Volo.Abp.FeatureManagement.MongoDB
         )]
     public class AbpFeatureManagementMongoDbTestModule : AbpModule
     {
-        private MongoDbRunner _mongoDbRunner;
-
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            _mongoDbRunner = MongoDbRunner.Start();
+            var connectionString = MongoDbFixture.ConnectionString.EnsureEndsWith('/')  +
+                                   "Db_" +
+                                   Guid.NewGuid().ToString("N");
 
-            Configure<DbConnectionOptions>(options =>
+            Configure<AbpDbConnectionOptions>(options =>
             {
-                options.ConnectionStrings.Default = _mongoDbRunner.ConnectionString;
+                options.ConnectionStrings.Default = connectionString;
             });
-        }
 
-        public override void OnApplicationShutdown(ApplicationShutdownContext context)
-        {
-            _mongoDbRunner.Dispose();
+            Configure<AbpUnitOfWorkDefaultOptions>(options =>
+            {
+                options.TransactionBehavior = UnitOfWorkTransactionBehavior.Disabled;
+            });
         }
     }
 }

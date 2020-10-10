@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.MultiTenancy;
 
-namespace Volo.Abp.Ui.Navigation.Urls
+namespace Volo.Abp.UI.Navigation.Urls
 {
     public class AppUrlProvider : IAppUrlProvider, ITransientDependency
     {
@@ -87,13 +87,16 @@ namespace Volo.Abp.Ui.Navigation.Urls
                 tenantNamePlaceHolder = TenantNamePlaceHolder + '.';
             }
 
-            if (CurrentTenant.Id.HasValue)
+            if (url.Contains(tenantNamePlaceHolder))
             {
-                url = url.Replace(tenantNamePlaceHolder, await GetCurrentTenantNameAsync());
-            }
-            else
-            {
-                url = url.Replace(tenantNamePlaceHolder, "");
+                if (CurrentTenant.Id.HasValue)
+                {
+                    url = url.Replace(tenantNamePlaceHolder, await GetCurrentTenantNameAsync());
+                }
+                else
+                {
+                    url = url.Replace(tenantNamePlaceHolder, "");
+                }
             }
 
             return url;

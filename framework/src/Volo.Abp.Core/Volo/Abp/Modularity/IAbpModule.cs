@@ -1,10 +1,6 @@
-﻿using JetBrains.Annotations;
-using Microsoft.Extensions.DependencyInjection;
-using Volo.Abp.DependencyInjection;
-
-namespace Volo.Abp.Modularity
+﻿namespace Volo.Abp.Modularity
 {
-    public interface IAbpModule : ISingletonDependency
+    public interface IAbpModule
     {
         void ConfigureServices(ServiceConfigurationContext context);
     }

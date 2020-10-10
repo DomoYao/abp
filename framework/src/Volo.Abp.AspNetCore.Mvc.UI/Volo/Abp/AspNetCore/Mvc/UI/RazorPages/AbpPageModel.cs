@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 using Volo.Abp.AspNetCore.Mvc.UI.Alerts;
 using Volo.Abp.AspNetCore.Mvc.Validation;
 using Volo.Abp.Guids;
+using Volo.Abp.Localization;
 using Volo.Abp.MultiTenancy;
 using Volo.Abp.ObjectMapping;
 using Volo.Abp.Settings;
@@ -21,52 +23,102 @@ namespace Volo.Abp.AspNetCore.Mvc.UI.RazorPages
 {
     public abstract class AbpPageModel : PageModel
     {
-        public IClock Clock { get; set; }
+        public IServiceProvider ServiceProvider { get; set; }
+        protected readonly object ServiceProviderLock = new object();
 
-        public AlertList Alerts => AlertManager.Alerts;
+        protected TService LazyGetRequiredService<TService>(ref TService reference)
+            => LazyGetRequiredService(typeof(TService), ref reference);
 
-        public IUnitOfWorkManager UnitOfWorkManager { get; set; }
+        protected TRef LazyGetRequiredService<TRef>(Type serviceType, ref TRef reference)
+        {
+            if (reference == null)
+            {
+                lock (ServiceProviderLock)
+                {
+                    if (reference == null)
+                    {
+                        reference = (TRef)ServiceProvider.GetRequiredService(serviceType);
+                    }
+                }
+            }
 
-        public IObjectMapper ObjectMapper { get; set; }
+            return reference;
+        }
 
-        public IGuidGenerator GuidGenerator { get; set; }
+        protected IClock Clock => LazyGetRequiredService(ref _clock);
+        private IClock _clock;
 
-        public ILoggerFactory LoggerFactory { get; set; }
+        protected AlertList Alerts => AlertManager.Alerts;
 
-        public IStringLocalizerFactory StringLocalizerFactory { get; set; }
+        protected IUnitOfWorkManager UnitOfWorkManager => LazyGetRequiredService(ref _unitOfWorkManager);
+        private IUnitOfWorkManager _unitOfWorkManager;
 
-        public IStringLocalizer L
+        protected Type ObjectMapperContext { get; set; }
+        protected IObjectMapper ObjectMapper
+        {
+            get
+            {
+                if (_objectMapper != null)
+                {
+                    return _objectMapper;
+                }
+
+                if (ObjectMapperContext == null)
+                {
+                    return LazyGetRequiredService(ref _objectMapper);
+                }
+
+                return LazyGetRequiredService(
+                    typeof(IObjectMapper<>).MakeGenericType(ObjectMapperContext),
+                    ref _objectMapper
+                );
+            }
+        }
+        private IObjectMapper _objectMapper;
+
+        protected IGuidGenerator GuidGenerator => LazyGetRequiredService(ref _guidGenerator);
+        private IGuidGenerator _guidGenerator;
+
+        protected ILoggerFactory LoggerFactory => LazyGetRequiredService(ref _loggerFactory);
+        private ILoggerFactory _loggerFactory;
+
+        protected IStringLocalizerFactory StringLocalizerFactory => LazyGetRequiredService(ref _stringLocalizerFactory);
+        private IStringLocalizerFactory _stringLocalizerFactory;
+
+        protected IStringLocalizer L
         {
             get
             {
                 if (_localizer == null)
                 {
-                    if (LocalizationResourceType == null)
-                    {
-                        throw new AbpException($"{nameof(LocalizationResourceType)} should be set before using the {nameof(L)} object!");
-                    }
-
-                    _localizer = StringLocalizerFactory.Create(LocalizationResourceType);
+                    _localizer = CreateLocalizer();
                 }
 
                 return _localizer;
             }
         }
+
         private IStringLocalizer _localizer;
 
         protected Type LocalizationResourceType { get; set; }
 
-        public ICurrentUser CurrentUser { get; set; }
+        protected ICurrentUser CurrentUser => LazyGetRequiredService(ref _currentUser);
+        private ICurrentUser _currentUser;
 
-        public ICurrentTenant CurrentTenant { get; set; }
+        protected ICurrentTenant CurrentTenant => LazyGetRequiredService(ref _currentTenant);
+        private ICurrentTenant _currentTenant;
 
-        public ISettingProvider SettingProvider { get; set; }
+        protected ISettingProvider SettingProvider => LazyGetRequiredService(ref _settingProvider);
+        private ISettingProvider _settingProvider;
 
-        public IModelStateValidator ModelValidator { get; set; }
+        protected IModelStateValidator ModelValidator => LazyGetRequiredService(ref _modelValidator);
+        private IModelStateValidator _modelValidator;
 
-        public IAuthorizationService AuthorizationService { get; set; }
+        protected IAuthorizationService AuthorizationService => LazyGetRequiredService(ref _authorizationService);
+        private IAuthorizationService _authorizationService;
 
-        public IAlertManager AlertManager { get; set; }
+        protected IAlertManager AlertManager => LazyGetRequiredService(ref _alertManager);
+        private IAlertManager _alertManager;
 
         protected IUnitOfWork CurrentUnitOfWork => UnitOfWorkManager?.Current;
 
@@ -96,6 +148,22 @@ namespace Volo.Abp.AspNetCore.Mvc.UI.RazorPages
                 ViewData = new ViewDataDictionary<TModel>(ViewData, model),
                 TempData = TempData
             };
+        }
+
+        protected virtual IStringLocalizer CreateLocalizer()
+        {
+            if (LocalizationResourceType != null)
+            {
+                return StringLocalizerFactory.Create(LocalizationResourceType);
+            }
+
+            var localizer = StringLocalizerFactory.CreateDefaultOrNull();
+            if (localizer == null)
+            {
+                throw new AbpException($"Set {nameof(LocalizationResourceType)} or define the default localization resource type (by configuring the {nameof(AbpLocalizationOptions)}.{nameof(AbpLocalizationOptions.DefaultResourceType)}) to be able to use the {nameof(L)} object!");
+            }
+
+            return localizer;
         }
     }
 }

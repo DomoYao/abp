@@ -16,15 +16,15 @@ namespace Volo.Abp.Features
         protected IDictionary<string, FeatureDefinition> FeatureDefinitions => _lazyFeatureDefinitions.Value;
         private readonly Lazy<Dictionary<string, FeatureDefinition>> _lazyFeatureDefinitions;
 
-        protected FeatureOptions Options { get; }
+        protected AbpFeatureOptions Options { get; }
 
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
         public FeatureDefinitionManager(
-            IOptions<FeatureOptions> options,
-            IServiceProvider serviceProvider)
+            IOptions<AbpFeatureOptions> options,
+            IServiceScopeFactory serviceScopeFactory)
         {
-            _serviceProvider = serviceProvider;
+            _serviceScopeFactory = serviceScopeFactory;
             Options = options.Value;
 
             _lazyFeatureDefinitions = new Lazy<Dictionary<string, FeatureDefinition>>(
@@ -62,6 +62,11 @@ namespace Volo.Abp.Features
             return FeatureDefinitions.GetOrDefault(name);
         }
 
+        public IReadOnlyList<FeatureGroupDefinition> GetGroups()
+        {
+            return FeatureGroupDefinitions.Values.ToImmutableList();
+        }
+
         protected virtual Dictionary<string, FeatureDefinition> CreateFeatureDefinitions()
         {
             var features = new Dictionary<string, FeatureDefinition>();
@@ -78,7 +83,7 @@ namespace Volo.Abp.Features
         }
 
         protected virtual void AddFeatureToDictionaryRecursively(
-            Dictionary<string, FeatureDefinition> features, 
+            Dictionary<string, FeatureDefinition> features,
             FeatureDefinition feature)
         {
             if (features.ContainsKey(feature.Name))
@@ -98,7 +103,7 @@ namespace Volo.Abp.Features
         {
             var context = new FeatureDefinitionContext();
 
-            using (var scope = _serviceProvider.CreateScope())
+            using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var providers = Options
                     .DefinitionProviders
